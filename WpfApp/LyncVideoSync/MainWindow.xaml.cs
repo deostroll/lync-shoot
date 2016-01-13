@@ -6,6 +6,7 @@ using Microsoft.Lync.Model.Extensibility;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Threading;
 using System.Windows;
 
 namespace LyncVideoSync
@@ -76,8 +77,15 @@ namespace LyncVideoSync
                             if (e5.NewState == ModalityState.Connected)
                             {
                                 Debug.Print("** Sharing Ok **");
+                                
                                 //TODO: start record
-                                meetNowConvo.BeginSetProperty(ConversationProperty.NumberOfParticipantsRecording, 1, GetNullAsyncCallback("Conversation.BeginSetProperty"), null);
+                                
+                                //Timer tmr = new Timer(new TimerCallback((obj) =>
+                                //{                                    
+                                //    Debug.Assert(meetNowConvo.CanSetProperty(ConversationProperty.NumberOfParticipantsRecording) == false);
+                                //}),null, 10, 1000);                                
+
+                                
                             }
                         };
                         
