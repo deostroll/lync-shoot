@@ -5,8 +5,19 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:LyncVideoSync"
         mc:Ignorable="d"
-        Title="MainWindow" Height="350" Width="525">
+        Title="Lync Video Sync" Height="350" Width="525" Loaded="Window_Loaded">
     <Grid>
-        
+        <Grid.RowDefinitions>
+            <RowDefinition></RowDefinition>            
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"></ColumnDefinition>
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock FontSize="16">Lync Video Recorder</TextBlock>
+            <Button Content="Start" Margin="10" Click="Start_Click"></Button>
+            <Button Content="Stop" Margin="10" Click="Stop_Click"></Button>
+        </StackPanel>
     </Grid>
 </Window>
