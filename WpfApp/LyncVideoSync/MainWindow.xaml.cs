@@ -1,4 +1,5 @@
-﻿using Microsoft.Lync.Model;
+﻿using FMUtils.WinApi;
+using Microsoft.Lync.Model;
 using Microsoft.Lync.Model.Conversation;
 using Microsoft.Lync.Model.Conversation.AudioVideo;
 using Microsoft.Lync.Model.Conversation.Sharing;
@@ -8,6 +9,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
 using System.Windows;
+using System.Windows.Forms;
 
 namespace LyncVideoSync
 {
@@ -20,7 +22,7 @@ namespace LyncVideoSync
         IAsyncResult handle;
         private LyncClient client;
         private Conversation meetNowConvo;
-        
+        private event EventHandler ConversationEnded;
         static AsyncCallback GetNullAsyncCallback(string Message)
         {
             return new AsyncCallback((o) =>
@@ -55,7 +57,14 @@ namespace LyncVideoSync
                 meetNowConvo = evt.Conversation;
                 meetNowConvo.PropertyChanged += (s3, e3) =>
                 {
-                    Debug.Print("> Conversation.PropertyChanged : Property:{0}, Value:{1}", e3.Property, e3.Value);                    
+                    Debug.Print("> Conversation.PropertyChanged : Property:{0}, Value:{1}", e3.Property, e3.Value);
+                    if (e3.Property == ConversationProperty.NumberOfParticipantsRecording && e3.Value.Equals(0))
+                    {
+                        if(ConversationEnded != null)
+                        {
+                            ConversationEnded(s3, e3);
+                        }
+                    }
                 };
                 ConversationWindow win = lync.GetConversationWindow(meetNowConvo);
 
@@ -76,16 +85,22 @@ namespace LyncVideoSync
 
                             if (e5.NewState == ModalityState.Connected)
                             {
-                                Debug.Print("** Sharing Ok **");
-                                
-                                //TODO: start record
-                                
-                                //Timer tmr = new Timer(new TimerCallback((obj) =>
-                                //{                                    
-                                //    Debug.Assert(meetNowConvo.CanSetProperty(ConversationProperty.NumberOfParticipantsRecording) == false);
-                                //}),null, 10, 1000);                                
+                                Debug.Print("** Sharing Ok **");                                
 
-                                
+                                Windowing.SetForegroundWindow(win.Handle);
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait("{TAB}");
+                                SendKeys.SendWait(" ");
+                                SendKeys.SendWait("r");
+
+                                Windowing.ShowWindow(win.Handle, (int)Windowing.ShowCommands.SW_SHOWMINNOACTIVE);
                             }
                         };
                         
@@ -97,24 +112,26 @@ namespace LyncVideoSync
                 avm.BeginConnect(GetNullAsyncCallback("AVModality.BeginConnect"), null);
 
             };
-
-            //mgr.ConversationAdded += (s, e0) =>
-            //{
-            //    Conversation conversation = e0.Conversation;
-            //    conversation.PropertyChanged += (s1, e1) =>
-            //    {
-            //        Debug.Print("> Conversation.PropertyChanged");
-            //        _debug(e1);
-            //    };
-
-            //    WireModalityChangeEvents(conversation);                
-            //};
+            
         }
 
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
+            var win = lync.GetConversationWindow(meetNowConvo);
+            //Windowing.SetForegroundWindow(win.Handle);
+            Windowing.ShowWindow(win.Handle,(int) Windowing.ShowCommands.SW_RESTORE);
+            SendKeys.SendWait(" ");
+            SendKeys.SendWait("t");
+            SendKeys.SendWait("~");
+            ConversationEnded += new EventHandler(StopConversation);
+            
+        }
+
+        private void StopConversation(object sender, EventArgs e)
+        {
             lync.EndMeetNow(handle);
             meetNowConvo.End();
+            ConversationEnded -= StopConversation;
         }
 
         public static Dictionary<string, object> _dict(object atype)
